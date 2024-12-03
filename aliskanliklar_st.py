@@ -19,7 +19,7 @@ data = load_data()
 # Uygulama Başlığı
 st.title("Alışkanlık Takip")
 
-st.text('İçerik:\n1)Alışkanlıkların seri takibi\n2)Haftalara ve alışkanlıklara göre sıralama')
+st.text('İçerik:\n1) Alışkanlıkların seri takibi\n2) Haftalara ve alışkanlıklara göre sıralama')
 # Kullanıcıları seçme
 users = data['isim'].unique()
 selected_user = st.selectbox("İsim Seçiniz:", users)
