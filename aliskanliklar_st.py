@@ -5,12 +5,11 @@ import plotly.graph_objects as go
 import seaborn as sns
 import matplotlib.pyplot as plt
 import numpy as np
-
-
+import random 
 # CSV dosyasını yükleyin
 @st.cache_data
 def load_data():
-    data = pd.read_csv("tum_veri_5h.csv")
+    data = pd.read_csv(r"C:\Users\ad_za\OneDrive\Masaüstü\Alışkanlık\Alışkanlık Takip\tum_veri_5h.csv")
 
     data['Tarih'] = pd.to_datetime(data['Tarih'])
     return data
@@ -20,7 +19,7 @@ data = load_data()
 # Uygulama Başlığı
 st.title("Alışkanlık Takip")
 
-st.text('İçerik:\n1)Alışkanlıkların seri takibi\n2)Alışkanlıkların çizgi grafiği gösterimi\n3)Haftalara ve alışkanlıklara göre sıralamalar')
+st.text('İçerik:\n1)Alışkanlıkların seri takibi\n2)Alışkanlıkların çizgi grafiği gösterimi\n3)Haftalara ve alışkanlıklara göre en iyiler')
 # Kullanıcıları seçme
 users = data['isim'].unique()
 selected_user = st.selectbox("İsim Seçiniz:", users)
@@ -46,7 +45,6 @@ week_starts = user_data.index.to_series().dt.to_period("W").drop_duplicates().in
 # Heatmap için görselleştirme
 st.subheader(f"{selected_user} - Alışkanlık Serileri/Zincirleri")
 st.text('Bazen hata verebiliyor, sayfa yenilenince düzeliyor.')
-st.text('Tamamlanmış alışkanlıklar koyu yeşil ile işaretlenmiştir.')
 plt.figure(figsize=(12, 6))
 heatmap_data = user_data[habit_columns] > 0  # Alışkanlıklar başarılıysa True
 
@@ -82,7 +80,7 @@ user_data.reset_index(inplace=True)
 
 # Grafik 1: 4 Alışkanlığın Haftalık Performansı
 st.subheader(f"{selected_user} - Alışkanlıklar Çizgi Grafiği")
-st.text('Grafiğin sağ üstündeki alışkanlıklara tıklayarak istediğiniz alışkanlıkları gösterip kapatabilirsiniz.')
+st.text('Grafiğin sağ üstündeki alışkanlıklara tıklayarak\nistediğiniz alışkanlıkları gösterip kapatabilirsiniz.')
 fig1 = go.Figure()
 for habit in habit_columns:
     fig1.add_trace(go.Scatter(x=user_data['Tarih'], y=user_data[habit], mode='lines+markers', name=habit))
@@ -121,24 +119,57 @@ def get_weekly_data(week_index, data):
     selected_week_data = weekly_groups[week_index][1]
     return selected_week_data.groupby("isim")[habit_columns].sum()
 
+# Her bir kullanıcı için toplam skorların hesaplanması
+total_scores = data.groupby("isim")[habit_columns].sum()
+total_scores["Skor"] = total_scores.sum(axis=1)
+
+# Tüm haftalar için toplam veriyi hazırlama
+def get_all_weeks_data(data):
+    all_scores = data.groupby("isim")[habit_columns].sum()
+    all_scores["Skor"] = all_scores.sum(axis=1)  # Skor sütunu ekle
+    return all_scores.sort_values("Skor", ascending=False).astype(int)
+
 # Haftalık ve alışkanlık seçimleri
-st.header("Haftalık Sıralama")
+st.header("Sıralamalar")
 selected_habit = st.selectbox("Alışkanlık Seçin:", ["Tüm Alışkanlıklar", *habit_columns])
-selected_week = st.selectbox("Hafta Seçin:", week_names)
+selected_week = st.selectbox("Hafta Seçin:", ["Tüm Haftalar"] + week_names)
 
-# Seçilen haftanın indeksini bul
-selected_week_index = week_names.index(selected_week) 
-selected_week_data = get_weekly_data(selected_week_index, data)
+# Maksimum skor hesaplama fonksiyonu
+def calculate_max_score(total_days, total_habits):
+    return total_days * total_habits
 
-# Haftalık sıralama
-if selected_habit == "Tüm Alışkanlıklar":
-    weekly_scores = selected_week_data.sum(axis=1).sort_values(ascending=False).astype(int)   # Toplam skor
-    table_data = pd.DataFrame({"İsim": weekly_scores.index, "Toplam (28 üzerinden)": weekly_scores.values})
+# Tabloları oluşturma
+if selected_week == "Tüm Haftalar":
+    total_days = data.reset_index()["Tarih"].nunique()  # Tüm haftalardaki toplam gün sayısı
+    if selected_habit == "Tüm Alışkanlıklar":
+        max_score = calculate_max_score(total_days, len(habit_columns))  # Tüm haftalar, tüm alışkanlıklar
+        table_data = total_scores[["Skor"]].reset_index().sort_values('Skor',ascending=False)
+        table_data["Başarı Yüzdesi"] = (table_data["Skor"] / max_score * 100).round(2)
+    else:
+        max_score = calculate_max_score(total_days, 1)  # Tüm haftalar, 1 alışkanlık
+        table_data = total_scores[[selected_habit]].reset_index().rename(columns={selected_habit: "Skor"}).sort_values('Skor',ascending=False)
+        table_data["Başarı Yüzdesi"] = (table_data["Skor"] / max_score * 100).round(2)
 else:
-    weekly_scores = selected_week_data[selected_habit].sort_values(ascending=False).astype(int)  # Tekil alışkanlık
-    table_data = pd.DataFrame({"İsim": weekly_scores.index, "Toplam (28 üzerinden)": weekly_scores.values})
+    selected_week_index = week_names.index(selected_week)
+    selected_week_data = get_weekly_data(selected_week_index, data)
+    total_days_week = 7  # Belirli haftadaki toplam gün sayısı
+    
+    if selected_habit == "Tüm Alışkanlıklar":
+        max_score = calculate_max_score(total_days_week, len(habit_columns))  # Belirli hafta, tüm alışkanlıklar
+        weekly_scores = selected_week_data.sum(axis=1).sort_values(ascending=False)
+        table_data = pd.DataFrame({"İsim": weekly_scores.index, "Skor": weekly_scores.values})
+        table_data["Başarı Yüzdesi"] = (table_data["Skor"] / max_score * 100).round(2)
+    else:
+        max_score = calculate_max_score(total_days_week, 1)  # Belirli hafta, 1 alışkanlık
+        weekly_scores = selected_week_data[selected_habit].sort_values(ascending=False)
+        table_data = pd.DataFrame({"İsim": weekly_scores.index, "Skor": weekly_scores.values})
+        table_data["Başarı Yüzdesi"] = (weekly_scores.values / max_score * 100).round(2)
 
+# İndeksi 1’den başlat
 table_data.index = range(1, len(table_data) + 1)
+table_data.Skor = table_data.Skor.astype(int)
+table_data["Başarı Yüzdesi"] = table_data["Başarı Yüzdesi"].astype(float).round(2)
+
 # Tabloyu göster
 st.subheader(f"{selected_week} - {selected_habit}")
 st.table(table_data)
