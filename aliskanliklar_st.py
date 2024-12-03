@@ -19,7 +19,7 @@ data = load_data()
 # Uygulama Başlığı
 st.title("Alışkanlık Takip")
 
-st.text('İçerik:\n1)Alışkanlıkların seri takibi\n2)Alışkanlıkların çizgi grafiği gösterimi\n3)Haftalara ve alışkanlıklara göre en iyiler')
+st.text('İçerik:\n1)Alışkanlıkların seri takibi\n2)Alışkanlıkların çizgi grafiği gösterimi\n3)Haftalara ve alışkanlıklara göre sıralamalar')
 # Kullanıcıları seçme
 users = data['isim'].unique()
 selected_user = st.selectbox("İsim Seçiniz:", users)
@@ -120,7 +120,7 @@ def get_weekly_data(week_index, data):
     return selected_week_data.groupby("isim")[habit_columns].sum()
 
 # Haftalık ve alışkanlık seçimleri
-st.header("Haftalık İlk 10 Performans Tablosu")
+st.header("Haftalık Sıralama")
 selected_habit = st.selectbox("Alışkanlık Seçin:", ["Tüm Alışkanlıklar", *habit_columns])
 selected_week = st.selectbox("Hafta Seçin:", week_names)
 
@@ -128,12 +128,12 @@ selected_week = st.selectbox("Hafta Seçin:", week_names)
 selected_week_index = week_names.index(selected_week) 
 selected_week_data = get_weekly_data(selected_week_index, data)
 
-# Haftalık ilk 10 kullanıcı ve skorları
+# Haftalık sıralama
 if selected_habit == "Tüm Alışkanlıklar":
-    weekly_scores = selected_week_data.sum(axis=1).sort_values(ascending=False).astype(int).head(10)   # Toplam skor
+    weekly_scores = selected_week_data.sum(axis=1).sort_values(ascending=False).astype(int)   # Toplam skor
     table_data = pd.DataFrame({"İsim": weekly_scores.index, "Toplam (28 üzerinden)": weekly_scores.values})
 else:
-    weekly_scores = selected_week_data[selected_habit].sort_values(ascending=False).astype(int).head(10)  # Tekil alışkanlık
+    weekly_scores = selected_week_data[selected_habit].sort_values(ascending=False).astype(int)  # Tekil alışkanlık
     table_data = pd.DataFrame({"İsim": weekly_scores.index, "Toplam (28 üzerinden)": weekly_scores.values})
 
 table_data.index = range(1, len(table_data) + 1)
