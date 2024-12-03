@@ -19,14 +19,14 @@ data = load_data()
 # Uygulama Başlığı
 st.title("Alışkanlık Takip")
 
-st.text('İçerik:\n1)Alışkanlıkların seri takibi\n2)Alışkanlıkların çizgi grafiği gösterimi\n3)Haftalara ve alışkanlıklara göre en iyiler')
+st.text('İçerik:\n1)Alışkanlıkların seri takibi\n2)Haftalara ve alışkanlıklara göre sıralama')
 # Kullanıcıları seçme
 users = data['isim'].unique()
 selected_user = st.selectbox("İsim Seçiniz:", users)
 
 # Seçilen kişinin verileri
 user_data = data[data['isim'] == selected_user]
-user_data['Zincir'] = (user_data.iloc[:, 3:] > 0).sum(axis=1)
+user_data.loc[:, 'Zincir'] = (user_data.iloc[:, 3:] > 0).sum(axis=1)
 
 # 4 Alışkanlığın Haftalık Değişimleri
 habit_columns = ['Egzersiz', 'Günlük rutin', 'Nafile ibadet', 'Bireysel']
@@ -79,19 +79,19 @@ st.pyplot(plt)
 user_data.reset_index(inplace=True)
 
 # Grafik 1: 4 Alışkanlığın Haftalık Performansı
-st.subheader(f"{selected_user} - Alışkanlıklar Çizgi Grafiği")
-st.text('Grafiğin sağ üstündeki alışkanlıklara tıklayarak\nistediğiniz alışkanlıkları gösterip kapatabilirsiniz.')
-fig1 = go.Figure()
-for habit in habit_columns:
-    fig1.add_trace(go.Scatter(x=user_data['Tarih'], y=user_data[habit], mode='lines+markers', name=habit))
+# st.subheader(f"{selected_user} - Alışkanlıklar Çizgi Grafiği")
+# st.text('Grafiğin sağ üstündeki alışkanlıklara tıklayarak\nistediğiniz alışkanlıkları gösterip kapatabilirsiniz.')
+# fig1 = go.Figure()
+# for habit in habit_columns:
+#     fig1.add_trace(go.Scatter(x=user_data['Tarih'], y=user_data[habit], mode='lines+markers', name=habit))
 
-fig1.update_layout(
-    title="",
-    xaxis_title="Tarih",
-    yaxis_title="Gerçekleştirme (1/0)",
-    template="plotly_dark",
-)
-st.plotly_chart(fig1)
+# fig1.update_layout(
+#     title="",
+#     xaxis_title="Tarih",
+#     yaxis_title="Gerçekleştirme (1/0)",
+#     template="plotly_dark",
+# )
+# st.plotly_chart(fig1)
 
 data = data.drop(data[data.isim == 'Toplam'].index)
 
