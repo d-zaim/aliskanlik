@@ -46,6 +46,7 @@ week_starts = user_data.index.to_series().dt.to_period("W").drop_duplicates().in
 # Heatmap için görselleştirme
 st.subheader(f"{selected_user} - Alışkanlık Serileri/Zincirleri")
 st.text('Bazen hata verebiliyor, sayfa yenilenince düzeliyor.')
+st.text('Tamamlanmış alışkanlıklar koyu yeşil ile işaretlenmiştir.')
 plt.figure(figsize=(12, 6))
 heatmap_data = user_data[habit_columns] > 0  # Alışkanlıklar başarılıysa True
 
@@ -81,7 +82,7 @@ user_data.reset_index(inplace=True)
 
 # Grafik 1: 4 Alışkanlığın Haftalık Performansı
 st.subheader(f"{selected_user} - Alışkanlıklar Çizgi Grafiği")
-st.text('Grafiğin sağ üstündeki alışkanlıklara tıklayarak\nistediğiniz alışkanlıkları gösterip kapatabilirsiniz.')
+st.text('Grafiğin sağ üstündeki alışkanlıklara tıklayarak istediğiniz alışkanlıkları gösterip kapatabilirsiniz.')
 fig1 = go.Figure()
 for habit in habit_columns:
     fig1.add_trace(go.Scatter(x=user_data['Tarih'], y=user_data[habit], mode='lines+markers', name=habit))
