@@ -5,7 +5,7 @@ import plotly.graph_objects as go
 import seaborn as sns
 import matplotlib.pyplot as plt
 import numpy as np
-import random 
+
 
 # CSV dosyasını yükleyin
 @st.cache_data
@@ -23,7 +23,7 @@ st.title("Alışkanlık Takip")
 st.text('İçerik:\n1)Alışkanlıkların seri takibi\n2)Alışkanlıkların çizgi grafiği gösterimi\n3)Haftalara ve alışkanlıklara göre sıralamalar')
 # Kullanıcıları seçme
 users = data['isim'].unique()
-selected_user = st.selectbox("İsim Seçiniz:", users, index=random.randint(0,len(users)))
+selected_user = st.selectbox("İsim Seçiniz:", users)
 
 # Seçilen kişinin verileri
 user_data = data[data['isim'] == selected_user]
