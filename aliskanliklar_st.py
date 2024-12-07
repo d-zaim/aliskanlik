@@ -9,7 +9,7 @@ import random
 # CSV dosyasını yükleyin
 @st.cache_data
 def load_data():
-    data = pd.read_csv("tum_veri_5h.csv")
+    data = pd.read_csv("tum_veri_6h.csv")
 
     data['Tarih'] = pd.to_datetime(data['Tarih'])
     return data
